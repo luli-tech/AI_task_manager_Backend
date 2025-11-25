@@ -60,3 +60,11 @@ pub struct UpdateTaskStatusRequest {
 pub struct UpdateNotificationPreferencesRequest {
     pub notification_enabled: bool,
 }
+#[derive(Debug, Serialize, ToSchema)]
+pub struct PaginatedResponse<T> {
+    pub data: Vec<T>,
+    pub total: i64,
+    pub page: u32,
+    pub limit: u32,
+    pub total_pages: u32,
+}

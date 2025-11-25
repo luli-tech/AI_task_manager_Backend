@@ -11,6 +11,11 @@ pub struct TaskRepository {
 pub struct TaskFilters {
     pub status: Option<String>,
     pub priority: Option<String>,
+    pub search: Option<String>,
+    pub sort_by: Option<String>,
+    pub sort_order: Option<String>,
+    pub page: Option<u32>,
+    pub limit: Option<u32>,
 }
 
 impl TaskRepository {
@@ -18,21 +23,69 @@ impl TaskRepository {
         Self { pool }
     }
 
-    pub async fn find_all(&self, user_id: Uuid, filters: TaskFilters) -> Result<Vec<Task>> {
+    pub async fn find_all(&self, user_id: Uuid, filters: TaskFilters) -> Result<(Vec<Task>, i64)> {
         let mut query = "SELECT * FROM tasks WHERE user_id = $1".to_string();
+        let mut count_query = "SELECT COUNT(*) FROM tasks WHERE user_id = $1".to_string();
         let mut params_count = 1;
 
-        if filters.status.is_some() {
+        if let Some(ref status) = filters.status {
             params_count += 1;
-            query.push_str(&format!(" AND status = ${}", params_count));
+            let filter = format!(" AND status = ${}", params_count);
+            query.push_str(&filter);
+            count_query.push_str(&filter);
         }
 
-        if filters.priority.is_some() {
+        if let Some(ref priority) = filters.priority {
             params_count += 1;
-            query.push_str(&format!(" AND priority = ${}", params_count));
+            let filter = format!(" AND priority = ${}", params_count);
+            query.push_str(&filter);
+            count_query.push_str(&filter);
         }
 
-        query.push_str(" ORDER BY created_at DESC");
+        if let Some(ref search) = filters.search {
+            params_count += 1;
+            let filter = format!(" AND (title ILIKE ${} OR description ILIKE ${})", params_count, params_count);
+            query.push_str(&filter);
+            count_query.push_str(&filter);
+        }
+
+        // Calculate total count before pagination
+        let mut count_db_query = sqlx::query_scalar::<_, i64>(&count_query).bind(user_id);
+
+        if let Some(status) = &filters.status {
+            count_db_query = count_db_query.bind(status);
+        }
+        if let Some(priority) = &filters.priority {
+            count_db_query = count_db_query.bind(priority);
+        }
+        if let Some(search) = &filters.search {
+            let search_pattern = format!("%{}%", search);
+            count_db_query = count_db_query.bind(search_pattern);
+        }
+
+        let total_count = count_db_query.fetch_one(&self.pool).await?;
+
+        // Add sorting
+        let sort_column = match filters.sort_by.as_deref() {
+            Some("priority") => "priority",
+            Some("due_date") => "due_date",
+            Some("created_at") => "created_at",
+            _ => "created_at",
+        };
+
+        let sort_direction = match filters.sort_order.as_deref() {
+            Some("asc") => "ASC",
+            _ => "DESC",
+        };
+
+        query.push_str(&format!(" ORDER BY {} {}", sort_column, sort_direction));
+
+        // Add pagination
+        let page = filters.page.unwrap_or(1);
+        let limit = filters.limit.unwrap_or(10);
+        let offset = (page - 1) * limit;
+
+        query.push_str(&format!(" LIMIT {} OFFSET {}", limit, offset));
 
         let mut db_query = sqlx::query_as::<_, Task>(&query).bind(user_id);
 
@@ -44,8 +97,13 @@ impl TaskRepository {
             db_query = db_query.bind(priority);
         }
 
+        if let Some(search) = filters.search {
+            let search_pattern = format!("%{}%", search);
+            db_query = db_query.bind(search_pattern);
+        }
+
         let tasks = db_query.fetch_all(&self.pool).await?;
-        Ok(tasks)
+        Ok((tasks, total_count))
     }
 
     pub async fn find_by_id(&self, id: Uuid, user_id: Uuid) -> Result<Option<Task>> {

@@ -19,6 +19,11 @@ use validator::Validate;
 pub struct TaskFilters {
     status: Option<String>,
     priority: Option<String>,
+    search: Option<String>,
+    sort_by: Option<String>,
+    sort_order: Option<String>,
+    page: Option<u32>,
+    limit: Option<u32>,
 }
 
 /// Get all tasks for the authenticated user
@@ -27,10 +32,15 @@ pub struct TaskFilters {
     path = "/api/tasks",
     params(
         ("status" = Option<String>, Query, description = "Filter by status"),
-        ("priority" = Option<String>, Query, description = "Filter by priority")
+        ("priority" = Option<String>, Query, description = "Filter by priority"),
+        ("search" = Option<String>, Query, description = "Search by title or description"),
+        ("sort_by" = Option<String>, Query, description = "Sort by field (priority, due_date, created_at)"),
+        ("sort_order" = Option<String>, Query, description = "Sort order (asc, desc)"),
+        ("page" = Option<u32>, Query, description = "Page number"),
+        ("limit" = Option<u32>, Query, description = "Items per page")
     ),
     responses(
-        (status = 200, description = "List of tasks", body = Vec<Task>),
+        (status = 200, description = "List of tasks", body = PaginatedResponse<Task>),
         (status = 401, description = "Unauthorized")
     ),
     tag = "tasks",
@@ -40,15 +50,31 @@ pub async fn get_tasks(
     State(state): State<AppState>,
     Extension(user_id): Extension<Uuid>,
     Query(filters): Query<TaskFilters>,
-) -> Result<Json<Vec<Task>>> {
+) -> Result<Json<crate::dto::PaginatedResponse<Task>>> {
+    let page = filters.page.unwrap_or(1);
+    let limit = filters.limit.unwrap_or(10);
+
     let repo_filters = crate::repositories::task_repository::TaskFilters {
         status: filters.status,
         priority: filters.priority,
+        search: filters.search,
+        sort_by: filters.sort_by,
+        sort_order: filters.sort_order,
+        page: Some(page),
+        limit: Some(limit),
     };
 
-    let tasks = state.task_repository.find_all(user_id, repo_filters).await?;
+    let (tasks, total) = state.task_repository.find_all(user_id, repo_filters).await?;
 
-    Ok(Json(tasks))
+    let total_pages = (total as f64 / limit as f64).ceil() as u32;
+
+    Ok(Json(crate::dto::PaginatedResponse {
+        data: tasks,
+        total,
+        page,
+        limit,
+        total_pages,
+    }))
 }
 
 /// Get a single task by ID
