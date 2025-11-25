@@ -174,7 +174,7 @@ pub async fn google_callback(
         &user_info.name,
         &user_info.email,
         &user_info.id,
-        &user_info.picture,
+        user_info.picture.as_deref().unwrap_or(""),
     ).await?;
 
     let token = create_jwt(

@@ -44,4 +44,4 @@ tokio-cron-scheduler = "0.10"
 anyhow = "1.0"
 thiserror = "1.0"
 futures = "0.3.31"
-tokio-stream = "0.1.17"
+tokio-stream = { version = "0.1.17", features = ["sync"] }
