@@ -105,12 +105,20 @@ pub async fn get_user_stats(
         urgent_priority_tasks,
     ) = state.task_repository.get_user_stats(user_id).await?;
 
+    // Calculate completion rate (completed / total * 100)
+    let completion_rate = if total_tasks > 0 {
+        (completed_tasks as f64 / total_tasks as f64) * 100.0
+    } else {
+        0.0
+    };
+
     let stats = UserStatsResponse {
         total_tasks,
         pending_tasks,
         in_progress_tasks,
         completed_tasks,
         archived_tasks,
+        completion_rate,
         low_priority_tasks,
         medium_priority_tasks,
         high_priority_tasks,

@@ -87,6 +87,7 @@ pub struct UserStatsResponse {
     pub in_progress_tasks: i64,
     pub completed_tasks: i64,
     pub archived_tasks: i64,
+    pub completion_rate: f64,
     pub low_priority_tasks: i64,
     pub medium_priority_tasks: i64,
     pub high_priority_tasks: i64,
