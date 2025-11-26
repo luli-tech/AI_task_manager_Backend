@@ -1,2 +1,6 @@
-// Re-export all admin module items
-pub use crate::admin::admin_middleware::admin_authorization;
+// Declare submodules
+#[path = "admin.middleware.rs"]
+pub mod admin_middleware;
+
+// Re-export public items
+pub use admin_middleware::admin_authorization;
