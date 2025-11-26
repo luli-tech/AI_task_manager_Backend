@@ -1,10 +1,9 @@
-use crate::error::Result;
-use sqlx::PgPool;
-use uuid::Uuid;
 use crate::{
     error::Result,
     message::{message_dto::ConversationUser, message_models::Message},
 };
+use sqlx::PgPool;
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct MessageRepository {

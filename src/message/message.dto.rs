@@ -12,7 +12,7 @@ pub struct SendMessageRequest {
     pub image_url: Option<String>,
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, ToSchema, sqlx::FromRow)]
 pub struct ConversationUser {
     pub user_id: Uuid,
     pub username: String,

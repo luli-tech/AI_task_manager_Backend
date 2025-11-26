@@ -8,7 +8,7 @@ use crate::{
     middleware::auth::AuthUser,
 };
 
-pub async fn admin_middleware(
+pub async fn admin_authorization(
     AuthUser(user_id): AuthUser,
     request: Request,
     next: Next,
