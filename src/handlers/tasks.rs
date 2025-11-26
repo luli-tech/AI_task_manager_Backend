@@ -7,11 +7,13 @@ use crate::{
 use axum::{
     extract::{Path, Query, State},
     http::{Request, StatusCode},
-    response::IntoResponse,
+    response::{IntoResponse, sse::{Event, KeepAlive, Sse}},
     Extension, Json,
 };
+use futures::stream::Stream;
 use serde::Deserialize;
 use sqlx::query_as;
+use tokio_stream::{wrappers::BroadcastStream, StreamExt};
 use uuid::Uuid;
 use validator::Validate;
 
@@ -136,6 +138,9 @@ pub async fn create_task(
         payload.reminder_time,
     ).await?;
 
+    // Broadcast task creation
+    let _ = state.task_tx.send((user_id, task.clone()));
+
     Ok((StatusCode::CREATED, Json(task)))
 }
 
@@ -178,6 +183,9 @@ pub async fn update_task(
         payload.due_date,
         payload.reminder_time,
     ).await?;
+
+    // Broadcast task update
+    let _ = state.task_tx.send((user_id, task.clone()));
 
     Ok(Json(task))
 }
@@ -237,5 +245,38 @@ pub async fn update_task_status(
         .await?
     .ok_or_else(|| AppError::NotFound("Task not found".to_string()))?;
 
+    // Broadcast task status update
+    let _ = state.task_tx.send((user_id, task.clone()));
+
     Ok(Json(task))
+}
+
+/// Real-time task stream (SSE)
+#[utoipa::path(
+    get,
+    path = "/api/tasks/stream",
+    tag = "tasks",
+    responses(
+        (status = 200, description = "Task stream established"),
+        (status = 401, description = "Unauthorized")
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
+pub async fn task_stream(
+    State(state): State<AppState>,
+    Extension(user_id): Extension<Uuid>,
+) -> Sse<impl Stream<Item = std::result::Result<Event, std::convert::Infallible>>> {
+    let rx = state.task_tx.subscribe();
+    let stream = BroadcastStream::new(rx)
+        .filter_map(move |result| match result {
+            Ok((task_user_id, task)) if task_user_id == user_id => {
+                let json = serde_json::to_string(&task).ok()?;
+                Some(Ok(Event::default().data(json)))
+            }
+            _ => None,
+        });
+
+    Sse::new(stream).keep_alive(KeepAlive::default())
 }

@@ -59,6 +59,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     
     // Create message broadcaster
     let (message_tx, _) = broadcast::channel(100);
+    
+    // Create task broadcaster
+    let (task_tx, _) = broadcast::channel(100);
 
     // Create repositories
     let user_repository = crate::repositories::user_repository::UserRepository::new(db.clone());
@@ -73,6 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         oauth_client,
         notification_tx: notification_tx.clone(),
         message_tx: message_tx.clone(),
+        task_tx: task_tx.clone(),
         user_repository,
         task_repository,
         notification_repository,

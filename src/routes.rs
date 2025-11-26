@@ -34,6 +34,7 @@ use utoipa_swagger_ui::SwaggerUi;
         crate::handlers::tasks::update_task,
         crate::handlers::tasks::delete_task,
         crate::handlers::tasks::update_task_status,
+        crate::handlers::tasks::task_stream,
         crate::handlers::notifications::get_notifications,
         crate::handlers::notifications::notification_stream,
         crate::handlers::notifications::mark_notification_read,
@@ -115,6 +116,7 @@ pub fn create_router(state: AppState) -> Router {
     // Protected routes (auth required)
     let task_routes = Router::new()
         .route("/", get(handlers::get_tasks).post(handlers::create_task))
+        .route("/stream", get(handlers::task_stream))
         .route(
             "/:id",
             get(handlers::get_task)

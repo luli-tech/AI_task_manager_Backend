@@ -10,7 +10,7 @@ pub use notifications::{
     notification_stream, update_notification_preferences,
 };
 pub use tasks::{
-    create_task, delete_task, get_task, get_tasks, update_task, update_task_status,
+    create_task, delete_task, get_task, get_tasks, update_task, update_task_status, task_stream,
 };
 pub use users::{get_current_user, get_user_stats, update_current_user};
 pub use messages::{

@@ -17,6 +17,7 @@ pub struct AppState {
     pub oauth_client: BasicClient,
     pub notification_tx: broadcast::Sender<String>,
     pub message_tx: broadcast::Sender<(uuid::Uuid, crate::models::Message)>,
+    pub task_tx: broadcast::Sender<(uuid::Uuid, crate::models::Task)>,
     pub user_repository: UserRepository,
     pub task_repository: TaskRepository,
     pub notification_repository: NotificationRepository,
