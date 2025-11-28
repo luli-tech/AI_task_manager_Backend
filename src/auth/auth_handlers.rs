@@ -88,20 +88,13 @@ pub async fn login(
     // let (user, access_token, refresh_token) = state.auth_service
     //     .login(&payload.email, &payload.password)
     //     .await?;
-    let user = state.auth_service.find_by_email(&payload.email).await?
-      .ok_or(AppError::Unauthorized("Invalid credentials".to_string()))?;
-
-    // Verify password using imported function
-    // verify_password(&payload.password, &user.password_hash)?;
-    let password_hash = user.password_hash
-    .as_ref()
-    .ok_or(AppError::Unauthorized("No password set".to_string()))?;
-
-      verify_password(&payload.password, password_hash)?;
+    let (user, access_token, refresh_token) = state.auth_service
+        .login(&payload.email, &payload.password)
+        .await?;
 
     Ok(Json(AuthResponse {
-    access_token: create_access_token(user.id, &user.email, &user.role, &state.config.jwt_secret)?,
-    refresh_token: create_refresh_token(user.id, &user.email, &user.role, &state.config.jwt_secret)?,
+        access_token,
+        refresh_token,
         user: user.into(),
     }))
 }
@@ -128,18 +121,13 @@ pub async fn refresh_token(
     // Ok(Json(RefreshTokenResponse {
     //     access_token:create_access_token(&user)?,
     // }))
-let claims = verify_jwt(&payload.refresh_token, &state.config.jwt_secret)?;
-let user_id = Uuid::parse_str(&claims.sub)
-    .map_err(|_| AppError::Unauthorized("Invalid refresh token".to_string()))?;
-
-    let user = state.auth_service.find_by_id(user_id)
-        .await?
-        .ok_or(AppError::Unauthorized("Invalid refresh token".to_string()))?;
-
+    let (access_token, refresh_token) = state.auth_service
+        .refresh_access_token(&payload.refresh_token)
+        .await?;
 
     Ok(Json(RefreshTokenResponse {
-        access_token: create_access_token(user.id, &user.email, &user.role, &state.config.jwt_secret)?,
-
+        access_token,
+        refresh_token,
     }))
 }
 
