@@ -86,6 +86,22 @@ pub async fn send_message(
 }
 
 // ... (get_conversation)
+#[utoipa::path(
+    get,
+    path = "/api/messages/conversations/{other_user_id}",
+    tag = "messages",
+    params(
+        ("other_user_id" = Uuid, Path, description = "Other user ID")
+    ),
+    responses(
+        (status = 200, description = "Conversation messages", body = Vec<MessageResponse>),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Receiver not found")
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
 pub async fn get_conversation(
     State(state): State<AppState>,
     AuthUser(user_id): AuthUser,
@@ -127,6 +143,18 @@ pub async fn get_conversation(
 }
 
 // ... (get_conversations)
+#[utoipa::path(
+    get,
+    path = "/api/messages/conversations",
+    tag = "messages",
+    responses(
+        (status = 200, description = "List of conversations", body = Vec<MessageResponse>),
+        (status = 401, description = "Unauthorized")
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
 pub async fn get_conversations(
     State(state): State<AppState>,
     AuthUser(user_id): AuthUser,
@@ -140,6 +168,22 @@ pub async fn get_conversations(
 }
 
 // ... (mark_message_read)
+#[utoipa::path(
+    put,
+    path = "/api/messages/{message_id}/read",
+    tag = "messages",
+    params(
+        ("message_id" = Uuid, Path, description = "Message ID")
+    ),
+    responses(
+        (status = 200, description = "Message marked as read"),
+        (status = 401, description = "Unauthorized"),
+        (status = 404, description = "Message not found")
+    ),
+    security(
+        ("bearer_auth" = [])
+    )
+)]
 pub async fn mark_message_read(
     State(state): State<AppState>,
     AuthUser(user_id): AuthUser,
