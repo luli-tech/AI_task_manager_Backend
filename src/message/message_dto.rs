@@ -4,7 +4,7 @@ use utoipa::ToSchema;
 use validator::Validate;
 use uuid::Uuid;
 
-#[derive(Debug, Deserialize, Validate, ToSchema)]
+#[derive(Clone,Debug, Deserialize, Validate, ToSchema)]
 pub struct SendMessageRequest {
     pub receiver_id: Uuid,
     #[validate(length(min = 1))]

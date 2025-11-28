@@ -15,7 +15,7 @@ pub struct Message {
     pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Clone,Debug, Serialize, Deserialize, ToSchema)]
 pub struct MessageResponse {
     pub id: Uuid,
     pub sender_id: Uuid,
