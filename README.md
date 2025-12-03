@@ -7,7 +7,7 @@ A robust task management REST API built with Rust, Axum, PostgreSQL, featuring J
 - **User Authentication**
   - Manual registration and login with JWT
   - Short-lived access tokens (15 min) + long-lived refresh tokens (7 days)
-  - Token refresh endpoint for seamless re‑authentication
+  - Token refresh endpoint (rotating refresh tokens)
   - Secure token revocation on logout
   - Google OAuth 2.0 integration
   - Secure password hashing with bcrypt
@@ -131,7 +131,7 @@ http://localhost:3000/swagger-ui
 |--------|----------|-------------|
 | POST | `/api/auth/register` | Register a new user |
 | POST | `/api/auth/login` | Login with email/password |
-| POST | `/api/auth/refresh` | Refresh access token |
+| POST | `/api/auth/refresh` | Refresh access token (returns new access & refresh tokens) |
 | POST | `/api/auth/logout` | Logout and revoke refresh token |
 | GET | `/api/auth/google` | Initiate Google OAuth |
 | GET | `/api/auth/google/callback` | Google OAuth callback |
@@ -248,51 +248,51 @@ task-manager/
 │
 ├── src/
 │   ├── admin/                     # Admin module
-│   │   ├── admin.middleware.rs    # Admin authorization middleware
-│   │   └── routes.rs              # Module exports
+│   │   ├── admin_middleware.rs    # Admin authorization middleware
+│   │   └── mod.rs                 # Module exports
 │   │
 │   ├── auth/                      # Authentication module
-│   │   ├── auth.dto.rs            # DTOs (RegisterRequest, LoginRequest, etc.)
-│   │   ├── auth.handlers.rs       # Handlers (register, login, OAuth)
-│   │   ├── auth.models.rs         # RefreshToken model
-│   │   ├── auth.repository.rs     # RefreshToken repository
-│   │   ├── auth.service.rs        # Business logic
+│   │   ├── auth_dto.rs            # DTOs (RegisterRequest, LoginRequest, etc.)
+│   │   ├── auth_handlers.rs       # Handlers (register, login, OAuth)
+│   │   ├── auth_models.rs         # RefreshToken model
+│   │   ├── auth_repository.rs     # RefreshToken repository
+│   │   ├── auth_service.rs        # Business logic
 │   │   ├── jwt.rs                 # JWT generation/validation
 │   │   ├── oauth.rs               # Google OAuth client
 │   │   ├── password.rs            # Password hashing/verification
-│   │   └── routes.rs              # Module exports
+│   │   └── mod.rs                 # Module exports
 │   │
 │   ├── message/                   # Messaging module
-│   │   ├── message.dto.rs         # DTOs
-│   │   ├── message.handlers.rs    # Handlers
-│   │   ├── message.models.rs      # Models
-│   │   ├── message.repository.rs  # Repository
-│   │   ├── message.service.rs     # Service layer
-│   │   └── routes.rs              # Module exports
+│   │   ├── message_dto.rs         # DTOs
+│   │   ├── message_handlers.rs    # Handlers
+│   │   ├── message_models.rs      # Models
+│   │   ├── message_repository.rs  # Repository
+│   │   ├── message_service.rs     # Service layer
+│   │   └── mod.rs                 # Module exports
 │   │
 │   ├── notification/              # Notification module
-│   │   ├── notification.dto.rs    # DTOs
-│   │   ├── notification.handlers.rs # Handlers
-│   │   ├── notification.models.rs # Models
-│   │   ├── notification.repository.rs # Repository
-│   │   ├── notification.service.rs # Service (background job)
-│   │   └── routes.rs              # Module exports
+│   │   ├── notification_dto.rs    # DTOs
+│   │   ├── notification_handlers.rs # Handlers
+│   │   ├── notification_models.rs # Models
+│   │   ├── notification_repository.rs # Repository
+│   │   ├── notification_service.rs # Service (background job)
+│   │   └── mod.rs                 # Module exports
 │   │
 │   ├── task/                      # Task module
-│   │   ├── task.dto.rs            # DTOs (CreateTaskRequest, UpdateTaskRequest, etc.)
-│   │   ├── task.handlers.rs       # Handlers
-│   │   ├── task.models.rs         # Models (Task, TaskStatus, TaskPriority)
-│   │   ├── task.repository.rs     # Repository
-│   │   ├── task.service.rs        # Service layer
-│   │   └── routes.rs              # Module exports
+│   │   ├── task_dto.rs            # DTOs (CreateTaskRequest, UpdateTaskRequest, etc.)
+│   │   ├── task_handlers.rs       # Handlers
+│   │   ├── task_models.rs         # Models (Task, TaskStatus, TaskPriority)
+│   │   ├── task_repository.rs     # Repository
+│   │   ├── task_service.rs        # Service layer
+│   │   └── mod.rs                 # Module exports
 │   │
 │   ├── user/                      # User module
-│   │   ├── user.dto.rs            # DTOs (UpdateProfileRequest, etc.)
-│   │   ├── user.handlers.rs       # Handlers
-│   │   ├── user.models.rs         # Models (User, UserResponse)
-│   │   ├── user.repository.rs     # Repository
-│   │   ├── user.service.rs        # Service layer
-│   │   └── routes.rs              # Module exports
+│   │   ├── user_dto.rs            # DTOs (UpdateProfileRequest, etc.)
+│   │   ├── user_handlers.rs       # Handlers
+│   │   ├── user_models.rs         # Models (User, UserResponse)
+│   │   ├── user_repository.rs     # Repository
+│   │   ├── user_service.rs        # Service layer
+│   │   └── mod.rs                 # Module exports
 │   │
 │   ├── middleware/                # Middleware
 │   │   └── auth.rs                # JWT authentication middleware
