@@ -138,7 +138,8 @@ pub fn create_router(state: AppState) -> Router {
             .parse()
             .unwrap(),
             "https://id-preview--b130d367-8904-4b37-9f41-ae51af942bec.lovable.app".parse().unwrap(),
-            "https://taskpadi.vercel.app".parse().unwrap()
+            "https://taskpadi.vercel.app".parse().unwrap(),
+            "http://localhost:8080".parse().unwrap()
         ]))
         .allow_methods([
             Method::GET,
