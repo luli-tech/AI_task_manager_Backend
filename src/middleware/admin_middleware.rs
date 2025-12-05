@@ -1,6 +1,7 @@
 use axum::{
+    body::Body,
     extract::State,
-    http::{Request, StatusCode},
+    http::Request,
     middleware::Next,
     response::Response,
 };
@@ -12,11 +13,11 @@ use crate::{
 };
 
 /// Middleware to check if user is an admin
-pub async fn admin_middleware<B>(
+pub async fn admin_middleware(
     State(state): State<AppState>,
     AuthUser(user_id): AuthUser,
-    request: Request<B>,
-    next: Next<B>,
+    request: Request<Body>,
+    next: Next,
 ) -> Result<Response, AppError> {
     // Get user from database
     let user = state

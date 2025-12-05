@@ -67,8 +67,15 @@ pub async fn send_message(
         .send_message(user_id, payload.clone())
         .await?;
 
-    // Broadcast message to SSE subscribers
-    let _ = state.message_tx.send((payload.receiver_id, message.clone()));
+    // Broadcast message via WebSocket
+    let ws_message = crate::websocket::types::WsMessage::NewMessage(crate::websocket::types::NewMessagePayload {
+        message_id: message.id,
+        sender_id: user_id,
+        content: message.content.clone(),
+        image_url: message.image_url.clone(),
+        created_at: message.created_at,
+    });
+    state.ws_connections.send_to_user(&payload.receiver_id, ws_message);
 
     // Create notification for receiver
     let notification_message = if message.image_url.is_some() {
@@ -195,34 +202,4 @@ pub async fn mark_message_read(
         .await?;
 
     Ok(StatusCode::OK)
-}
-
-/// Real-time message stream (SSE)
-#[utoipa::path(
-    get,
-    path = "/api/messages/stream",
-    tag = "messages",
-    responses(
-        (status = 200, description = "Message stream established"),
-        (status = 401, description = "Unauthorized")
-    ),
-    security(
-        ("bearer_auth" = [])
-    )
-)]
-pub async fn message_stream(
-    State(state): State<AppState>,
-    AuthUser(user_id): AuthUser,
-) -> Sse<impl Stream<Item = std::result::Result<Event, Infallible>>> {
-    let rx = state.message_tx.subscribe();
-    let stream = BroadcastStream::new(rx)
-        .filter_map(move |result| match result {
-            Ok((receiver_id, message)) if receiver_id == user_id => {
-                let json = serde_json::to_string(&MessageResponse::from(message)).ok()?;
-                Some(Ok(Event::default().data(json)))
-            }
-            _ => None,
-        });
-
-    Sse::new(stream).keep_alive(KeepAlive::default())
 }

@@ -1,8 +1,8 @@
 use axum::{
-    extract::State,
+    extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
-    Json,
+    Extension, Json,
 };
 use validator::Validate;
 

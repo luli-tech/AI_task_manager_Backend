@@ -14,7 +14,7 @@ pub struct CreateTaskRequest {
     pub reminder_time: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Deserialize, Validate, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate, ToSchema)]
 pub struct UpdateTaskRequest {
     #[validate(length(min = 1, max = 500))]
     pub title: Option<String>,
@@ -56,7 +56,7 @@ pub struct TaskMemberResponse {
     pub added_by: Option<Uuid>,
 }
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, ToSchema, sqlx::FromRow)]
 pub struct TaskActivityResponse {
     pub id: Uuid,
     pub user_id: Option<Uuid>,

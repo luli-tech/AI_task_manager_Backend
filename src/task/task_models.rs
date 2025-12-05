@@ -87,7 +87,7 @@ pub struct TaskWithMembers {
     pub is_owner: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, sqlx::FromRow)]
 pub struct TaskMemberInfo {
     pub user_id: Uuid,
     pub username: String,
