@@ -4,6 +4,7 @@ use axum::{
     response::IntoResponse,
     Extension, Json,
 };
+use serde::Deserialize;
 use validator::Validate;
 
 use crate::{
@@ -12,6 +13,12 @@ use crate::{
     state::AppState,
     user::user_dto::UpdateProfileRequest,
 };
+
+#[derive(Debug, Deserialize)]
+pub struct PaginationParams {
+    pub page: Option<u32>,
+    pub limit: Option<u32>,
+}
 
 /// Get current user profile
 #[utoipa::path(
@@ -108,10 +115,10 @@ pub async fn get_user_stats(
 )]
 pub async fn get_all_users(
     State(state): State<AppState>,
-    Query(query): Query<crate::task::task_dto::PaginatedResponse<()>>,
+    Query(params): Query<PaginationParams>,
 ) -> Result<impl IntoResponse> {
-    let page = query.page.max(1);
-    let limit = query.limit.min(100).max(1);
+    let page = params.page.unwrap_or(1).max(1);
+    let limit = params.limit.unwrap_or(10).min(100).max(1);
     let offset = ((page - 1) * limit) as i64;
 
     let users = state
