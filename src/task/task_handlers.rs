@@ -278,7 +278,7 @@ pub async fn task_stream(
         (status = 404, description = "Task not found")
     ),
     tag = "tasks",
-    security((\"bearer_auth\" = []))
+    security(("bearer_auth" = []))
 )]
 pub async fn share_task(
     State(state): State<AppState>,
@@ -325,7 +325,7 @@ pub async fn share_task(
         (status = 404, description = "Task not found")
     ),
     tag = "tasks",
-    security((\"bearer_auth\" = []))
+    security(("bearer_auth" = []))
 )]
 pub async fn remove_task_member(
     State(state): State<AppState>,
@@ -362,7 +362,7 @@ pub async fn remove_task_member(
         (status = 404, description = "Task not found")
     ),
     tag = "tasks",
-    security((\"bearer_auth\" = []))
+    security(("bearer_auth" = []))
 )]
 pub async fn get_task_members(
     State(state): State<AppState>,
@@ -387,7 +387,7 @@ pub async fn get_task_members(
         (status = 404, description = "Task not found")
     ),
     tag = "tasks",
-    security((\"bearer_auth\" = []))
+    security(("bearer_auth" = []))
 )]
 pub async fn get_task_activity(
     State(state): State<AppState>,
